@@ -81,7 +81,8 @@ project is built against.
 ## Contrast (computed, not eyeballed)
 
 WCAG 2.1 relative luminance, `(L1 + 0.05) / (L2 + 0.05)`. Every pair used for text clears AA
-(4.5:1 normal, 3:1 large).
+(4.5:1 normal, 3:1 large). The table is the token sheet; the same ratios were re-checked in the
+rendered page for every text node in both themes — 0 failures on the landing page and in the docs.
 
 | pair | light | dark |
 |---|---:|---:|
@@ -100,8 +101,7 @@ background, so the palette uses the product's existing accent `#2a66c2` (5.02:1)
 
 ## Accessibility and quality
 
-- `lang="en"` on the landing page, `lang` set per page by Starlight in the docs; Russian text in
-  the README is under an explicit section, not a stray `lang`-less block.
+- `lang="en"` on the landing page; Starlight sets `lang` on every documentation page.
 - One `<h1>` per page, landmarks (`nav`, `main`, `header`, `footer`), a skip link, visible
   `:focus-visible` rings, `aria-label` on the icon-only theme control.
 - Motion is opt-in: drift, reveals and hover lifts are all disabled under

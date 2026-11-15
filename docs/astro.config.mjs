@@ -2,8 +2,14 @@ import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
 import { base, repo } from './base.mjs';
 
+// The one absolute address this config needs: Starlight resolves a sidebar
+// `link` against the docs base unless it carries a protocol, so the way back to
+// the landing page has to be a full URL.
+const site = 'https://dormouse-ai.github.io';
+const home = site + (repo.endsWith('.github.io') ? '/' : `/${repo}/`);
+
 export default defineConfig({
-  site: 'https://dormouse-ai.github.io',
+  site,
   base,
   outDir: './dist',
   integrations: [
@@ -30,7 +36,7 @@ export default defineConfig({
         {
           label: 'Elsewhere',
           items: [
-            { label: 'The landing page', link: `/${repo}/` },
+            { label: 'The landing page', link: home },
             { label: 'The plan', link: 'https://github.com/dormouse-ai/plan' },
           ],
         },

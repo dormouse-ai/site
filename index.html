@@ -1,0 +1,631 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>dormouse — they sell access, we hand you a file</title>
+<meta name="description" content="A 95-million-parameter language model in one small file: open weights, Apache-2.0, no tokenizer, no network, English and Russian. Train it on one 16 GB card, run it offline.">
+<link rel="canonical" href="https://dormouse-ai.github.io/site/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="dormouse">
+<meta property="og:title" content="dormouse — they sell access, we hand you a file">
+<meta property="og:description" content="A 95M language model in one file: open weights, no network, English and Russian. Apache-2.0.">
+<meta property="og:image" content="https://dormouse-ai.github.io/site/assets/banner.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="300">
+<meta property="og:image:alt" content="dormouse — they sell access, we hand you a file">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#f6f3ec" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0a0b0d" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<script>
+  /* Set the theme before the first paint, so nothing flashes. */
+  (function () {
+    try {
+      var m = localStorage.getItem('dormouse-theme') || 'auto';
+      var dark = m === 'auto' ? matchMedia('(prefers-color-scheme: dark)').matches : m === 'dark';
+      document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+    } catch (e) {}
+  })();
+</script>
+<style>
+  /* ---------------------------------------------------------------- tokens
+     The palette is the product's, not a framework's: warm paper, ink, one
+     blue. Every text colour here clears WCAG AA on every ground it is used
+     on — the ratios are in README.md, computed, not eyeballed. */
+  :root {
+    --paper: #f6f3ec; --panel: #fffdf8; --panel2: #fbf8f1;
+    --line: #e3ded2; --line2: #d3ccbc;
+    --ink: #1b1a17; --dim: #57534a; --dimmer: #6f6a5f;
+    --accent: #2a66c2; --hot: #c0392b; --good: #2e7d4f;
+    --mono: "DejaVu Sans Mono", "Liberation Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+    --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", sans-serif;
+    --nav-bg: rgba(246, 243, 236, 0.78);
+    --btn: rgba(255, 255, 255, 0.6);
+    --btn-hover: #ffffff;
+    --shadow: 0 24px 60px -44px rgba(24, 38, 66, 0.5);
+    --stage: #0a0b0d; --stage-ink: #e8e6e1; --stage-dim: #b6b4ae;
+    --stage-line: #2a2e37; --stage-accent: #7aa2e8; --stage-dim2: #9aa0a9;
+  }
+  html[data-theme="dark"] {
+    --paper: #0a0b0d; --panel: #101216; --panel2: #14171c;
+    --line: #1e2128; --line2: #2a2e37;
+    --ink: #e8e6e1; --dim: #b6b4ae; --dimmer: #9aa0a9;
+    --accent: #7aa2e8; --hot: #ff6b7a; --good: #5fbf7f;
+    --nav-bg: rgba(10, 11, 13, 0.72);
+    --btn: rgba(255, 255, 255, 0.06);
+    --btn-hover: rgba(255, 255, 255, 0.12);
+    --shadow: 0 24px 60px -40px rgba(0, 0, 0, 0.9);
+    /* the dark "stage" panels sit one step above the page here, otherwise the
+       licence band and the file card would be the same black as the paper */
+    --stage: #101216;
+  }
+
+  * { box-sizing: border-box; }
+  html { color-scheme: light; scroll-behavior: smooth; scroll-padding-top: 72px; }
+  html[data-theme="dark"] { color-scheme: dark; }
+  body {
+    margin: 0; background: var(--paper); color: var(--ink);
+    font-family: var(--sans); font-size: 16px; line-height: 1.62;
+    -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility;
+  }
+  a { color: inherit; }
+  img, svg { max-width: 100%; }
+  .mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+  .visually-hidden {
+    position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+  }
+  .wrap { width: 100%; max-width: 1120px; margin: 0 auto; padding: 0 20px; }
+
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 3px; }
+  .skip {
+    position: absolute; left: 12px; top: -60px; z-index: 100;
+    background: var(--ink); color: var(--paper); padding: 10px 14px; border-radius: 8px;
+    font-family: var(--mono); font-size: 13px; transition: top 0.15s;
+  }
+  .skip:focus { top: 12px; }
+
+  /* ------------------------------------------------------------------ nav */
+  .nav {
+    position: fixed; inset: 0 0 auto 0; z-index: 50; height: 56px;
+    display: flex; align-items: center;
+    background: var(--nav-bg); backdrop-filter: blur(12px) saturate(1.15);
+    -webkit-backdrop-filter: blur(12px) saturate(1.15);
+    border-bottom: 1px solid var(--line);
+  }
+  .nav .wrap { display: flex; align-items: center; gap: 22px; font-family: var(--mono); font-size: 13px; }
+  .nav .brand { font-weight: 600; letter-spacing: -0.01em; text-decoration: none; white-space: nowrap; }
+  .nav .brand::after {
+    content: ""; display: inline-block; width: 6px; height: 6px; margin-left: 8px;
+    border-radius: 50%; background: var(--good); vertical-align: middle;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--good) 18%, transparent);
+  }
+  .nav a.section { color: var(--dim); text-decoration: none; }
+  .nav a.section:hover { color: var(--ink); }
+  .nav .spacer { margin-left: auto; }
+  .nav .tools { display: flex; align-items: center; gap: 12px; white-space: nowrap; }
+  .nav .tools .glyph { display: none; }
+  .nav .tools a, .nav .tools button {
+    color: var(--dim); text-decoration: none; font: inherit;
+    background: none; border: 0; padding: 0; cursor: pointer;
+  }
+  .nav .tools a:hover, .nav .tools button:hover { color: var(--ink); }
+  .nav .tools .key {
+    border: 1px solid var(--line2); border-radius: 6px; padding: 3px 7px;
+    font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
+  }
+  @media (max-width: 720px) {
+    .nav a.section { display: none; }
+    .nav .wrap { gap: 14px; }
+    .nav .tools { gap: 10px; }
+    .nav .tools .lbl { display: none; }
+    .nav .tools .glyph { display: inline; }
+  }
+
+  /* ----------------------------------------------------------------- hero */
+  .hero { position: relative; padding: 104px 0 64px; overflow: hidden; }
+  .hero::before {
+    /* a byte grid, drawn in CSS: no image, no layout shift, no request */
+    content: ""; position: absolute; inset: -20% -10% auto -10%; height: 780px;
+    background-image: radial-gradient(circle at 1px 1px, var(--line2) 1px, transparent 0);
+    background-size: 22px 22px; opacity: 0.75; pointer-events: none;
+    mask-image: radial-gradient(120% 80% at 62% 22%, #000 0%, transparent 72%);
+    -webkit-mask-image: radial-gradient(120% 80% at 62% 22%, #000 0%, transparent 72%);
+    animation: drift 44s linear infinite alternate;
+  }
+  @keyframes drift { from { transform: translate3d(0, 0, 0); } to { transform: translate3d(-22px, 11px, 0); } }
+  .hero .wrap { position: relative; }
+  .hero-grid { display: grid; gap: 36px; }
+
+  .kicker {
+    font-family: var(--mono); font-size: 11.5px; letter-spacing: 0.16em;
+    text-transform: uppercase; color: var(--dimmer); margin: 0 0 18px;
+  }
+  .kicker .accent { color: var(--accent); }
+
+  .hero-copy { container-type: inline-size; }
+  @media (max-width: 420px) {
+    .kicker { font-size: 10px; letter-spacing: 0.1em; }
+  }
+  h1 {
+    font-family: var(--mono); font-weight: 400;
+    font-size: clamp(26px, 8.2cqi, 48px); line-height: 1.08; letter-spacing: -0.04em;
+    margin: 0; color: var(--ink); text-wrap: balance;
+  }
+  h1 span { display: block; color: var(--dim); }
+  h1 strong { display: block; font-weight: 400; color: var(--ink); }
+
+  .sub {
+    margin: 22px 0 0; max-width: 58ch; color: var(--dim);
+    font-size: clamp(15.5px, 1.5vw, 17px); line-height: 1.66;
+  }
+  .sub b { color: var(--ink); font-weight: 600; }
+
+  .cta { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 28px; }
+  .btn {
+    font-family: var(--mono); font-size: 13px; text-decoration: none;
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 11px 17px; border-radius: 9px;
+    border: 1px solid var(--line2); background: var(--btn); color: var(--ink);
+  }
+  .btn:hover { background: var(--btn-hover); }
+  .btn.primary { background: var(--ink); border-color: var(--ink); color: var(--paper); }
+  .btn.primary:hover { opacity: 0.88; }
+  .btn .arw { color: var(--dimmer); }
+
+  .facts { list-style: none; display: flex; flex-wrap: wrap; gap: 8px 24px; margin: 27px 0 0; padding: 0; }
+  .facts li {
+    font-family: var(--mono); font-size: 11.5px; letter-spacing: 0.09em;
+    text-transform: uppercase; color: var(--dimmer);
+  }
+  .facts b { color: var(--ink); font-weight: 500; }
+
+  /* the file, as a card: the dark stage inside the paper page */
+  .filecard {
+    margin: 0; background: var(--stage); color: var(--stage-ink);
+    border-radius: 16px; border: 1px solid var(--stage-line);
+    box-shadow: var(--shadow); overflow: hidden;
+    font-family: var(--mono); font-size: 13px;
+  }
+  .filecard .bar {
+    display: flex; align-items: center; gap: 8px;
+    padding: 12px 16px; border-bottom: 1px solid var(--stage-line);
+    color: var(--stage-dim2); font-size: 11.5px; letter-spacing: 0.06em;
+  }
+  .filecard .bar .d { width: 8px; height: 8px; border-radius: 50%; background: var(--stage-accent); }
+  .filecard .bar .name { color: var(--stage-ink); }
+  .filecard .bar .spacer { margin-left: auto; }
+  .filecard dl { margin: 0; padding: 6px 16px 4px; }
+  .filecard .row {
+    display: flex; justify-content: space-between; gap: 18px; align-items: baseline;
+    padding: 10px 0; border-bottom: 1px solid var(--stage-line);
+  }
+  .filecard .row:last-child { border-bottom: 0; }
+  .filecard dt { color: var(--stage-dim2); font-size: 11.5px; letter-spacing: 0.1em; text-transform: uppercase; }
+  .filecard dd { margin: 0; color: var(--stage-ink); text-align: right; }
+  .filecard .row.accent dd { color: var(--stage-accent); }
+  .filecard .note {
+    padding: 12px 16px 14px; border-top: 1px solid var(--stage-line);
+    color: var(--stage-dim2); font-size: 11px; line-height: 1.5; letter-spacing: 0.01em;
+  }
+
+  /* -------------------------------------------------------------- sections */
+  .band { border-top: 1px solid var(--line); padding: 60px 0; }
+  .band.alt { background: var(--panel2); }
+  .eyebrow {
+    font-family: var(--mono); font-size: 11.5px; letter-spacing: 0.16em;
+    text-transform: uppercase; color: var(--dimmer); margin: 0 0 14px;
+  }
+  .eyebrow span { color: var(--accent); margin-right: 10px; }
+  h2 {
+    font-size: clamp(23px, 3.4vw, 33px); line-height: 1.16; letter-spacing: -0.022em;
+    font-weight: 600; margin: 0 0 14px; text-wrap: balance;
+  }
+  .lede { color: var(--dim); margin: 0; max-width: 66ch; font-size: 16px; line-height: 1.7; }
+  .lede b { color: var(--ink); font-weight: 600; }
+
+  /* what it is: the claim on the left, the spec on the right */
+  .what-grid { display: grid; gap: 26px; }
+  .spec { margin: 22px 0 0; display: grid; gap: 0; border-top: 1px solid var(--line); }
+  .spec > div { display: grid; gap: 3px; padding: 12px 0; border-bottom: 1px solid var(--line); }
+  .spec dt {
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--dimmer);
+  }
+  .spec dd { margin: 0; color: var(--ink); font-size: 14.5px; line-height: 1.5; }
+
+  /* the three measured numbers */
+  .numbers { display: grid; gap: 14px; margin-top: 30px; }
+  .number {
+    border: 1px solid var(--line); border-radius: 14px; background: var(--panel);
+    padding: 20px 20px 18px; position: relative;
+    transition: transform 0.35s cubic-bezier(0.2, 0.65, 0.2, 1), box-shadow 0.35s;
+  }
+  .number .i {
+    position: absolute; top: 18px; right: 18px;
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.12em; color: var(--dimmer);
+  }
+  @media (hover: hover) { .number:hover { transform: translateY(-3px); box-shadow: var(--shadow); } }
+  .number .v {
+    font-family: var(--mono); font-size: clamp(32px, 5vw, 40px); line-height: 1; padding-bottom: 14px;
+    letter-spacing: -0.035em; color: var(--ink); font-variant-numeric: tabular-nums;
+    border-bottom: 1px solid var(--line);
+  }
+  .number .v small { font-size: 0.5em; letter-spacing: 0; color: var(--dim); margin-left: 2px; }
+  .number .k {
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--dimmer); margin-top: 12px;
+  }
+  .number .d { color: var(--dim); font-size: 13.5px; line-height: 1.6; margin-top: 10px; }
+
+  details.evidence { margin-top: 14px; border-top: 1px dashed var(--line2); padding-top: 10px; }
+  details.evidence > summary {
+    cursor: pointer; list-style: none; font-family: var(--mono);
+    font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent);
+  }
+  details.evidence > summary::-webkit-details-marker { display: none; }
+  details.evidence > summary::before { content: "+ "; }
+  details.evidence[open] > summary::before { content: "− "; }
+  .evidence-body { font-size: 12.5px; color: var(--dim); line-height: 1.6; padding-top: 8px; }
+  .evidence-body a { color: var(--accent); }
+
+  /* the difference: two columns, one hairline */
+  .vs { display: grid; gap: 26px; margin-top: 30px; }
+  .vs h3 {
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.16em;
+    text-transform: uppercase; color: var(--dimmer); margin: 0 0 14px; font-weight: 400;
+  }
+  .vs .owned h3 { color: var(--accent); }
+  .vs dl { margin: 0; display: grid; gap: 0; }
+  .vs .pair { border-top: 1px solid var(--line); padding: 12px 0; display: grid; gap: 2px; }
+  .vs .pair:last-child { border-bottom: 1px solid var(--line); }
+  .vs dt { font-size: 13px; color: var(--dimmer); font-family: var(--mono); letter-spacing: 0.04em; }
+  .vs dd { margin: 0; font-size: 15.5px; color: var(--ink); line-height: 1.5; }
+  .vs .rented dd { color: var(--dim); }
+  .honest {
+    margin-top: 28px; border-left: 2px solid var(--accent); padding: 2px 0 2px 16px;
+    color: var(--dim); font-size: 15px; line-height: 1.66; max-width: 62ch;
+  }
+  .honest b { color: var(--ink); font-weight: 600; }
+
+  /* the licence, on the dark stage */
+  .licence { background: var(--stage); color: var(--stage-ink); border-top: 1px solid var(--stage-line); padding: 64px 0; }
+  .licence .eyebrow { color: var(--stage-dim2); }
+  .licence .eyebrow span { color: var(--stage-accent); }
+  .licence h2 { color: var(--stage-ink); }
+  .licence p { color: var(--stage-dim); margin: 0; max-width: 56ch; font-size: 15.5px; line-height: 1.7; }
+  .licence p b { color: var(--stage-ink); font-weight: 600; }
+  .licence-grid { display: grid; gap: 32px; }
+  .grants { display: grid; gap: 0; margin: 0; border-top: 1px solid var(--stage-line); }
+  .grant { padding: 15px 0; border-bottom: 1px solid var(--stage-line); display: grid; gap: 3px; }
+  .grant .t { font-family: var(--mono); font-size: 11.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--stage-accent); }
+  .grant .d { color: var(--stage-dim); font-size: 14px; line-height: 1.55; }
+
+  /* a full-bleed statement, to break the rhythm of cards */
+  .quote { border-top: 1px solid var(--line); padding: 72px 0; background: var(--panel2); }
+  .quote blockquote {
+    margin: 0; max-width: 24ch; font-family: var(--mono); font-weight: 400;
+    font-size: clamp(25px, 4.2vw, 44px); line-height: 1.12; letter-spacing: -0.035em; color: var(--ink);
+  }
+  .quote blockquote em { font-style: normal; color: var(--accent); }
+  .quote .src {
+    margin: 22px 0 0; font-family: var(--mono); font-size: 11.5px;
+    letter-spacing: 0.13em; text-transform: uppercase; color: var(--dimmer);
+  }
+
+  /* the call to read */
+  .read .links { list-style: none; margin: 26px 0 0; padding: 0; display: grid; gap: 0; }
+  .read .links li { border-top: 1px solid var(--line); }
+  .read .links li:last-child { border-bottom: 1px solid var(--line); }
+  .read .links a {
+    display: flex; align-items: baseline; gap: 16px; padding: 14px 2px;
+    text-decoration: none; color: var(--ink);
+  }
+  .read .links a:hover { color: var(--accent); }
+  .read .links .n {
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em;
+    color: var(--dimmer); min-width: 2ch;
+  }
+  .read .links .t { font-size: 16px; }
+  .read .links .d { margin-left: auto; color: var(--dimmer); font-size: 13px; text-align: right; }
+  @media (max-width: 620px) { .read .links .d { display: none; } }
+
+  footer { border-top: 1px solid var(--line); padding: 34px 0 64px; }
+  footer .row {
+    display: flex; flex-wrap: wrap; gap: 10px 24px; align-items: center;
+    font-family: var(--mono); font-size: 12px; color: var(--dimmer);
+  }
+  footer a { color: var(--dim); text-decoration: none; }
+  footer a:hover { color: var(--ink); }
+  footer .spacer { margin-left: auto; }
+
+  /* ---------------------------------------------------------------- motion */
+  /* One entrance, on the hero, where it cannot hide anything a reader came for;
+     then hover states and the drifting grid. A reader who asked for less motion
+     gets none of it. */
+  @media (prefers-reduced-motion: no-preference) {
+    .hero-copy > *, .filecard {
+      animation: rise 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+    .hero-copy > :nth-child(2) { animation-delay: 0.05s; }
+    .hero-copy > :nth-child(3) { animation-delay: 0.11s; }
+    .hero-copy > :nth-child(4) { animation-delay: 0.17s; }
+    .hero-copy > :nth-child(5) { animation-delay: 0.23s; }
+    .filecard { animation-delay: 0.1s; }
+  }
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(14px); }
+    to { opacity: 1; transform: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .hero::before { animation: none; }
+    .number { transition: none; }
+    .skip { transition: none; }
+  }
+
+  /* ------------------------------------------------------------- wider all */
+  @media (min-width: 760px) {
+    .wrap { padding: 0 32px; }
+    .hero { padding: 128px 0 84px; }
+    .hero-copy { position: relative; padding-left: 28px; }
+    .hero-copy::before {
+      content: ""; position: absolute; left: 0; top: 5px; width: 2px; height: 74px;
+      background: var(--accent);
+    }
+    .hero-grid { grid-template-columns: 1.16fr 0.84fr; gap: 44px; align-items: center; }
+    .band { padding: 78px 0; }
+    .what-grid { grid-template-columns: 0.92fr 1.08fr; gap: 52px; align-items: start; }
+    .numbers { grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .vs { grid-template-columns: 1fr 1fr; gap: 44px; position: relative; }
+    .vs::before { content: ""; position: absolute; left: 50%; top: 0; bottom: 0; width: 1px; background: var(--line); }
+    .licence-grid { grid-template-columns: 1.02fr 0.98fr; gap: 56px; align-items: start; }
+    .licence { padding: 84px 0; }
+  }
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<nav class="nav" aria-label="Main">
+  <div class="wrap">
+    <a class="brand" href="./">dormouse</a>
+    <a class="section" href="#what">what it is</a>
+    <a class="section" href="#numbers">numbers</a>
+    <a class="section" href="#difference">difference</a>
+    <a class="section" href="#licence">licence</a>
+    <span class="spacer"></span>
+    <span class="tools">
+      <button id="themeBtn" type="button" aria-label="Colour theme: auto"><span class="glyph" aria-hidden="true">◐ </span><span class="lbl">theme: </span><span id="themeMode">auto</span></button>
+      <a href="docs/">docs</a>
+      <a href="https://github.com/dormouse-ai/site"><span class="key">source</span></a>
+    </span>
+  </div>
+</nav>
+
+<main id="main">
+
+  <header class="hero">
+    <div class="wrap">
+      <div class="hero-grid">
+        <div class="hero-copy">
+          <p class="kicker">one file <span class="accent">·</span> no network <span class="accent">·</span> Apache-2.0</p>
+          <h1>They sell access.<strong>We hand you a file.</strong></h1>
+          <p class="sub">A <b>95-million-parameter language model in one small file</b> — open
+            weights, no tokenizer, no network, English and Russian. It trains from scratch on a
+            single 16&nbsp;GB card and runs afterwards on the machine you already own.</p>
+          <div class="cta">
+            <a class="btn primary" href="docs/">Read the docs</a>
+            <a class="btn" href="https://github.com/dormouse-ai/plan">Source <span class="arw" aria-hidden="true">↗</span></a>
+          </div>
+          <ul class="facts">
+            <li><b>95,035,200</b> parameters</li>
+            <li><b>2</b> bits per weight</li>
+            <li><b>en · ru</b></li>
+          </ul>
+        </div>
+
+        <figure class="filecard" aria-labelledby="fcard">
+          <div class="bar"><span class="d" aria-hidden="true"></span>
+            <span class="name">dormouse-95m.tq2</span>
+            <span class="spacer"></span><span>local</span>
+          </div>
+          <dl>
+            <div class="row"><dt>parameters</dt><dd>95,035,200</dd></div>
+            <div class="row"><dt>format</dt><dd>ternary, b1.58</dd></div>
+            <div class="row"><dt>size</dt><dd>≈ 24 MB</dd></div>
+            <div class="row"><dt>network</dt><dd>none</dd></div>
+            <div class="row"><dt>languages</dt><dd>English · Русский</dd></div>
+            <div class="row accent"><dt>licence</dt><dd>Apache-2.0</dd></div>
+          </dl>
+          <p class="note">≈ 24 MB is arithmetic, not a download: 2 bits per weight, one fp16 scale per tensor.</p>
+          <figcaption id="fcard" class="visually-hidden">The shipped file: 95 million parameters, ternary weights, Apache-2.0, no network.</figcaption>
+        </figure>
+      </div>
+    </div>
+  </header>
+
+  <section class="band" id="what" aria-labelledby="h-what">
+    <div class="wrap what-grid">
+      <div>
+        <p class="eyebrow"><span>01</span>what it is</p>
+        <h2 id="h-what">A language model that is a file, not a service.</h2>
+      </div>
+      <div>
+        <p class="lede">The input is the file itself — 256 symbols, no vocabulary, nothing lost in a
+          translation to token ids. It learns in the format it ships in: every weight is
+          <b>−1, 0 or +1</b> from the first step, so the download is the network and not an
+          approximation of one.</p>
+        <dl class="spec">
+          <div><dt>input</dt><dd>raw bytes · 256 symbols · no tokenizer</dd></div>
+          <div><dt>weights</dt><dd>ternary from step 0, quantized-aware, annealed</dd></div>
+          <div><dt>budget</dt><dd>one RTX 5070 Ti, 16 GB, days — not a cluster</dd></div>
+          <div><dt>languages</dt><dd>English and Russian, in the same 256 symbols</dd></div>
+        </dl>
+      </div>
+    </div>
+  </section>
+
+  <section class="band alt" id="numbers" aria-labelledby="h-numbers">
+    <div class="wrap">
+      <p class="eyebrow"><span>02</span>three numbers</p>
+      <h2 id="h-numbers">Measured, with the window and the budget named.</h2>
+      <p class="lede">A loss without its window is an anecdote, so each of these carries the run it
+        came from. Nothing here is a projection.</p>
+
+      <div class="numbers">
+        <article class="number">
+          <span class="i" aria-hidden="true">01</span>
+          <div class="v">87<small>kB/s</small></div>
+          <div class="k">learns per second</div>
+          <p class="d">Bytes of text read and learned per second by the 95M model, training on one
+            RTX 5070 Ti with 16 GB.</p>
+          <details class="evidence" hx-get="partials/ev-throughput.html" hx-trigger="toggle once" hx-target="find .evidence-body" hx-swap="innerHTML">
+            <summary>where this comes from</summary>
+            <div class="evidence-body"><a href="docs/measurement/">the measurement page →</a></div>
+          </details>
+        </article>
+
+        <article class="number">
+          <span class="i" aria-hidden="true">02</span>
+          <div class="v">1.222<small>BPB</small></div>
+          <div class="k">held-out bits per byte</div>
+          <p class="d">After 2.64 GB of training bytes, on a fixed 196,608-byte window. Eight would be
+            guessing; <span class="mono">xz</span> manages 2.31.</p>
+          <details class="evidence" hx-get="partials/ev-bpb.html" hx-trigger="toggle once" hx-target="find .evidence-body" hx-swap="innerHTML">
+            <summary>where this comes from</summary>
+            <div class="evidence-body"><a href="docs/measurement/">the measurement page →</a></div>
+          </details>
+        </article>
+
+        <article class="number">
+          <span class="i" aria-hidden="true">03</span>
+          <div class="v">3.4<small>×</small></div>
+          <div class="k">bytes per second, tokenized</div>
+          <p class="d">A 32k byte-pair unit in front of the same model, at equal quality. The next run
+            ships with it.</p>
+          <details class="evidence" hx-get="partials/ev-tokenizer.html" hx-trigger="toggle once" hx-target="find .evidence-body" hx-swap="innerHTML">
+            <summary>where this comes from</summary>
+            <div class="evidence-body"><a href="docs/roadmap/">the roadmap page →</a></div>
+          </details>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="band" id="difference" aria-labelledby="h-diff">
+    <div class="wrap">
+      <p class="eyebrow"><span>03</span>the difference</p>
+      <h2 id="h-diff">The same questions, asked of a file instead of a subscription.</h2>
+
+      <div class="vs">
+        <div class="rented">
+          <h3>rented access</h3>
+          <dl>
+            <div class="pair"><dt>where it runs</dt><dd>someone else's datacenter</dd></div>
+            <div class="pair"><dt>what you pay</dt><dd>per token, per seat, per month</dd></div>
+            <div class="pair"><dt>the prompt</dt><dd>leaves your network</dd></div>
+            <div class="pair"><dt>what you get</dt><dd>whatever version is live today</dd></div>
+          </dl>
+        </div>
+        <div class="owned">
+          <h3>a file you own</h3>
+          <dl>
+            <div class="pair"><dt>where it runs</dt><dd>your machine, offline</dd></div>
+            <div class="pair"><dt>what you pay</dt><dd>nothing for the weights</dd></div>
+            <div class="pair"><dt>the prompt</dt><dd>never leaves the process</dd></div>
+            <div class="pair"><dt>what you get</dt><dd>a frozen file you can diff</dd></div>
+          </dl>
+        </div>
+      </div>
+
+      <p class="honest"><b>The first thing to say, not the last:</b> a 95M model knows less than a
+        30B one, and no architecture closes a three-order-of-magnitude gap in data. What you are
+        buying is the file, the control and the privacy — not the knowledge.</p>
+    </div>
+  </section>
+
+  <section class="quote" aria-label="The rule behind every number here">
+    <div class="wrap">
+      <blockquote>A number you cannot check is <em>a rumour.</em></blockquote>
+      <p class="src">so every number here names its run</p>
+    </div>
+  </section>
+
+  <section class="licence" id="licence" aria-labelledby="h-lic">
+    <div class="wrap licence-grid">
+      <div>
+        <p class="eyebrow"><span>04</span>the licence</p>
+        <h2 id="h-lic">Apache-2.0. Weights, code and recipe.</h2>
+        <p>No key, no seat, no call home. A paid licence on a file is not defensible when a free
+          model of the same class sits next to it, so <b>the file is free</b> — and what is sold
+          around it is installation, fine-tuning and responsibility.</p>
+      </div>
+      <div class="grants">
+        <div class="grant"><span class="t">weights</span><span class="d">The ternary file, downloadable and redistributable.</span></div>
+        <div class="grant"><span class="t">code</span><span class="d">The trainer, the packer, the server. Read it before you trust it.</span></div>
+        <div class="grant"><span class="t">recipe</span><span class="d">Every config, every measurement, including the ones that failed.</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="band read" id="read" aria-labelledby="h-read">
+    <div class="wrap">
+      <p class="eyebrow"><span>05</span>read next</p>
+      <h2 id="h-read">Five pages, and then the code.</h2>
+      <p class="lede">The documentation is written to be checked, not admired: each page ends with
+        the papers it leans on, by arXiv id.</p>
+      <ul class="links">
+        <li><a href="docs/getting-started/"><span class="n">01</span><span class="t">Getting started</span><span class="d">install · train · export</span></a></li>
+        <li><a href="docs/architecture/"><span class="n">02</span><span class="t">Architecture</span><span class="d">the block, the optimizer, the invariants</span></a></li>
+        <li><a href="docs/formats/"><span class="n">03</span><span class="t">Formats</span><span class="d">bf16 → 4-bit → ternary</span></a></li>
+        <li><a href="docs/measurement/"><span class="n">04</span><span class="t">Measurement</span><span class="d">loss · window · budget</span></a></li>
+        <li><a href="docs/roadmap/"><span class="n">05</span><span class="t">Roadmap</span><span class="d">bigger stored, same active</span></a></li>
+      </ul>
+      <div class="cta">
+        <a class="btn primary" href="docs/">Open the documentation</a>
+        <a class="btn" href="https://github.com/dormouse-ai/plan">The plan <span class="arw" aria-hidden="true">↗</span></a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap row">
+    <span>dormouse</span>
+    <a href="https://github.com/dormouse-ai/site">github.com/dormouse-ai/site</a>
+    <a href="docs/">documentation</a>
+    <a href="https://github.com/dormouse-ai/plan">plan</a>
+    <span class="spacer">Apache-2.0</span>
+  </div>
+</footer>
+
+<script src="assets/htmx.min.js" defer></script>
+<script>
+  (function () {
+    var html = document.documentElement;
+    var btn = document.getElementById('themeBtn');
+    var sys = matchMedia('(prefers-color-scheme: dark)');
+
+    var mode = document.getElementById('themeMode');
+    function saved() { try { return localStorage.getItem('dormouse-theme') || 'auto'; } catch (e) { return 'auto'; } }
+    function resolve(m) { return m === 'auto' ? (sys.matches ? 'dark' : 'light') : m; }
+    function apply() {
+      var m = saved();
+      html.dataset.theme = resolve(m);
+      mode.textContent = m;
+      btn.setAttribute('aria-label', 'Colour theme: ' + m);
+    }
+    btn.addEventListener('click', function () {
+      var order = ['auto', 'light', 'dark'];
+      var next = order[(order.indexOf(saved()) + 1) % order.length];
+      try { localStorage.setItem('dormouse-theme', next); } catch (e) {}
+      apply();
+    });
+    sys.addEventListener('change', apply);
+    apply();
+  })();
+</script>
+</body>
+</html>

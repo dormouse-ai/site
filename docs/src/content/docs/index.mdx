@@ -1,0 +1,52 @@
+---
+title: dormouse
+description: An open language model you own — 95M parameters, ternary weights, one small file, no network, English and Russian.
+---
+
+A 95-million-parameter language model in one small file. Open weights, no tokenizer, no network,
+English and Russian — trained from scratch on a single 16 GB card, in the format it ships in.
+
+<div class="stat-row">
+  <div class="stat"><b>95M</b><span>parameters</span></div>
+  <div class="stat"><b>2 bit</b><span>per weight</span></div>
+  <div class="stat"><b>87 kB/s</b><span>on one card</span></div>
+  <div class="stat"><b>0</b><span>network calls</span></div>
+</div>
+
+## What it is
+
+The input is the file itself — 256 symbols, no vocabulary, nothing lost in a translation to token
+ids, and no word the model can never see. It trains **in the format it ships in**: every forward
+pass sees `−α, 0, +α` from the first step, and an anneal pulls the projection onto those three
+levels. The download is the network, not an approximation of one.
+
+The bet is density: how much model fits on one card, in one file, in one night. The budget is fixed
+first — one consumer GPU, days, one downloadable file — and then the question is what fits inside
+it.
+
+## Read in order
+
+| page | what it answers |
+|---|---|
+| [Getting started](/getting-started/) | What do I type to get a checkpoint and a file? |
+| [Architecture](/architecture/) | What is inside the block, and which invariants does the code enforce? |
+| [Formats](/formats/) | bf16, 4-bit activations, ternary weights — and the export path. |
+| [Measurement](/measurement/) | How is a number produced here, and what is the current record? |
+| [Roadmap](/roadmap/) | Where the next factor of speed comes from, and what it costs. |
+
+## How to read a number here
+
+Every result is three things: **a loss, a window, a budget**. A bits-per-byte figure without the
+held-out window it was measured on, and the bytes of training that preceded it, is an anecdote.
+Where a claim has no run behind it, this documentation says so and names what would settle it.
+
+---
+
+## References
+
+This page names byte-level modelling, quantized-aware training and the transformer. Each has a
+paper, and the paper is the argument:
+
+- **Byte-level modelling** — MegaByte, [arXiv:2305.07185](https://arxiv.org/abs/2305.07185); BLT, [arXiv:2412.09871](https://arxiv.org/abs/2412.09871)
+- **Ternary weights, trained** — BitNet b1.58, [arXiv:2402.17764](https://arxiv.org/abs/2402.17764)
+- **The transformer** — Vaswani et al., [arXiv:1706.03762](https://arxiv.org/abs/1706.03762)

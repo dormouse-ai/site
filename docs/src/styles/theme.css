@@ -1,0 +1,111 @@
+/* The landing page's palette, carried into the docs: warm paper, ink, one
+   blue. Same tokens as ../index.html so the two read as one product.
+   Every foreground/background pair here is checked for WCAG AA; the ratios
+   are listed in README.md under "Contrast". */
+
+:root {
+  --sl-color-accent-low: #dbe6f8;
+  --sl-color-accent: #2a66c2;
+  --sl-color-accent-high: #1d4c93;
+
+  --sl-color-white: #1b1a17;
+  --sl-color-gray-1: #2b2a26;
+  --sl-color-gray-2: #4a4741;
+  --sl-color-gray-3: #57534a;
+  --sl-color-gray-4: #8a8378;
+  --sl-color-gray-5: #d3ccbc;
+  --sl-color-gray-6: #e9e4d9;
+  --sl-color-black: #f6f3ec;
+
+  --sl-font: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Noto Sans',
+    'Liberation Sans', sans-serif;
+  --sl-font-mono: 'DejaVu Sans Mono', 'Liberation Mono', ui-monospace, SFMono-Regular, Menlo,
+    monospace;
+}
+
+:root[data-theme='dark'] {
+  --sl-color-accent-low: #14243d;
+  --sl-color-accent: #7aa2e8;
+  --sl-color-accent-high: #b9cdf2;
+
+  --sl-color-white: #e8e6e1;
+  --sl-color-gray-1: #d5d3cd;
+  --sl-color-gray-2: #b6b4ae;
+  --sl-color-gray-3: #9aa0a9;
+  --sl-color-gray-4: #6c727b;
+  --sl-color-gray-5: #2a2e37;
+  --sl-color-gray-6: #1a1d23;
+  --sl-color-black: #0a0b0d;
+}
+
+/* Tables carry most of the content here; tabular figures and a quiet header. */
+.sl-markdown-content table { font-variant-numeric: tabular-nums; }
+.sl-markdown-content th {
+  font-family: var(--sl-font-mono);
+  font-size: 0.72rem;
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--sl-color-gray-3);
+}
+
+/* A file:line register is one token to Markdown and refuses to wrap; let the
+   column break inside a path rather than scroll off the page. */
+.sl-markdown-content table code { white-space: normal; overflow-wrap: break-word; }
+
+/* The page title is the one piece of type shared with the landing page: mono,
+   tight, not bold. Everything else stays in the reading face. */
+.content-panel > h1, .sl-markdown-content h1 {
+  font-family: var(--sl-font-mono);
+  font-weight: 400;
+  letter-spacing: -0.025em;
+}
+/* The reference list that closes every page: a citation, not prose, with the
+   arXiv id in mono. */
+.refs { font-size: 0.92rem; }
+.refs li { margin-bottom: 0.25rem; }
+
+/* The current page in the sidebar: the default is a solid accent pill, which
+   shouts on a paper background. A tint of the accent with the darker accent as
+   the text keeps it readable (6.65:1 light, 9.69:1 dark) and quiet. */
+#starlight__sidebar a[aria-current='page'] {
+  background: var(--sl-color-accent-low);
+  color: var(--sl-color-accent-high);
+}
+
+/* The numbers strip on the overview page. */
+.stat-row {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  margin: 2rem 0;
+  border: 1px solid var(--sl-color-gray-5);
+  border-radius: 10px;
+  overflow: hidden;
+}
+@media (min-width: 900px) {
+  .stat-row { grid-template-columns: repeat(4, 1fr); }
+}
+.stat { padding: 1rem 1.15rem; border-top: 1px solid var(--sl-color-gray-5); }
+.stat:nth-child(-n + 2) { border-top: 0; }
+.stat:nth-child(even) { border-left: 1px solid var(--sl-color-gray-5); }
+@media (min-width: 900px) {
+  .stat { border-top: 0; }
+  .stat:first-child { border-left: 0; }
+}
+.stat b {
+  display: block;
+  font-family: var(--sl-font-mono);
+  font-size: 1.5rem;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+.stat span {
+  display: block;
+  margin-top: 0.4rem;
+  font-family: var(--sl-font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--sl-color-gray-3);
+}

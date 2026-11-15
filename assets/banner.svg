@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 300" width="1200" height="300" role="img" aria-labelledby="t">
+  <title id="t">dormouse — they sell access, we hand you a file. An open Apache-2.0 language model that runs offline from one small file.</title>
+  <defs>
+    <pattern id="grain" width="24" height="24" patternUnits="userSpaceOnUse">
+      <circle cx="1" cy="1" r="1" fill="#1b1a17" opacity="0.055"/>
+    </pattern>
+  </defs>
+
+  <rect width="1200" height="300" fill="#f6f3ec"/>
+  <rect width="1200" height="300" fill="url(#grain)"/>
+  <rect x="0.5" y="0.5" width="1199" height="299" fill="none" stroke="#d3ccbc"/>
+
+  <!-- left: the statement -->
+  <text x="56" y="70" font-family="ui-monospace, 'DejaVu Sans Mono', Menlo, monospace"
+        font-size="13" letter-spacing="3.4" fill="#6f6a5f">DORMOUSE · APACHE-2.0 · OFFLINE</text>
+
+  <text x="54" y="146" font-family="ui-monospace, 'DejaVu Sans Mono', Menlo, monospace"
+        font-size="46" letter-spacing="-1.4" fill="#57534a">They sell access.</text>
+  <text x="54" y="200" font-family="ui-monospace, 'DejaVu Sans Mono', Menlo, monospace"
+        font-size="46" letter-spacing="-1.4" fill="#1b1a17">We hand you a file.</text>
+
+  <rect x="56" y="226" width="48" height="2" fill="#2a66c2"/>
+  <text x="120" y="232" font-family="ui-monospace, 'DejaVu Sans Mono', Menlo, monospace"
+        font-size="13" fill="#57534a">95M parameters · 2 bits per weight · English + Russian</text>
+
+  <!-- right: the three levels a weight can hold -->
+  <g transform="translate(760 62)">
+    <text x="0" y="0" font-family="ui-monospace, 'DejaVu Sans Mono', Menlo, monospace"
+          font-size="11" letter-spacing="2.6" fill="#6f6a5f">THE FILE · 2 BITS PER WEIGHT</text>
+    <g transform="translate(0 20)">
+      <rect x="0"   y="0"  width="52" height="18" rx="2" fill="#1b1a17" opacity="0.9"/>
+      <rect x="62"  y="0"  width="52" height="18" rx="2" fill="#1b1a17" opacity="0.12"/>
+      <rect x="124" y="0"  width="52" height="18" rx="2" fill="#1b1a17" opacity="0.9"/>
+      <rect x="186" y="0"  width="52" height="18" rx="2" fill="#1b1a17" opacity="0.42"/>
+      <rect x="248" y="0"  width="52" height="18" rx="2" fill="#1b1a17" opacity="0.12"/>
+      <rect x="310" y="0"  width="52" height="18" rx="2" fill="#1b1a17" opacity="0.9"/>
+    </g>
+    <g transform="translate(0 40)">
+      <rect x="0"   y="0"  width="52" height="18" rx="2" fill="#1b1a17" opacity="0.42"/>
+      <rect x="62"  y="0"  width="52" height="18" rx="2" fill="#2a66c2" opacity="0.9"/>
+      <rect x="124" y="0"  width="52" height="18" rx="2" fill="#1b1a17" opacity="0.12"/>
+      <rect x="186" y="0"  width="52" height="18" rx="2" fill="#1b1a17" opacity="0.9"/>
+      <rect x="248" y="0"  width="52" height="18" rx="2" fill="#1b1a17" opacity="0.42"/>
+      <rect x="310" y="0"  width="52" height="18" rx="2" fill="#1b1a17" opacity="0.12"/>
+    </g>
+    <g transform="translate(0 60)">
+      <rect x="0"   y="0"  width="52" height="18" rx="2" fill="#1b1a17" opacity="0.12"/>
+      <rect x="62"  y="0"  width="52" height="18" rx="2" fill="#1b1a17" opacity="0.9"/>
+      <rect x="124" y="0"  width="52" height="18" rx="2" fill="#1b1a17" opacity="0.42"/>
+      <rect x="186" y="0"  width="52" height="18" rx="2" fill="#1b1a17" opacity="0.12"/>
+      <rect x="248" y="0"  width="52" height="18" rx="2" fill="#2a66c2" opacity="0.9"/>
+      <rect x="310" y="0"  width="52" height="18" rx="2" fill="#1b1a17" opacity="0.9"/>
+    </g>
+    <g transform="translate(0 100)">
+      <text x="0"   y="0" font-family="ui-monospace, 'DejaVu Sans Mono', Menlo, monospace" font-size="15" fill="#1b1a17">−1</text>
+      <text x="62"  y="0" font-family="ui-monospace, 'DejaVu Sans Mono', Menlo, monospace" font-size="15" fill="#57534a">0</text>
+      <text x="124" y="0" font-family="ui-monospace, 'DejaVu Sans Mono', Menlo, monospace" font-size="15" fill="#1b1a17">+1</text>
+      <text x="186" y="0" font-family="ui-monospace, 'DejaVu Sans Mono', Menlo, monospace" font-size="11"
+            letter-spacing="2" fill="#6f6a5f">THREE VALUES, ONE SCALE</text>
+    </g>
+    <line x1="0" y1="122" x2="362" y2="122" stroke="#e3ded2"/>
+    <text x="0" y="146" font-family="ui-monospace, 'DejaVu Sans Mono', Menlo, monospace" font-size="11"
+          letter-spacing="2" fill="#6f6a5f">NO KEY · NO NETWORK · NO PER-TOKEN BILL</text>
+  </g>
+</svg>

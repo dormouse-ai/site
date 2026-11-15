@@ -1,0 +1,69 @@
+name: pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: docs/package-lock.json
+
+      - name: Build the docs
+        working-directory: docs
+        run: |
+          npm ci
+          npm run build
+
+      # One artifact: the landing page at the root, the docs under /docs/.
+      # GITHUB_REPOSITORY is set by Actions, so docs/base.mjs derives the same
+      # base path here as it does locally.
+      - name: Assemble the site
+        run: |
+          mkdir -p _site
+          cp -r index.html 404.html assets partials _site/
+          cp -r docs/dist _site/docs
+          touch _site/.nojekyll
+
+      - name: Check the artifact
+        run: |
+          set -e
+          test -f _site/index.html
+          test -f _site/404.html
+          test -f _site/docs/index.html
+          test -f _site/assets/htmx.min.js
+          test -d _site/docs/_astro
+          grep -q 'site/docs/' _site/docs/index.html
+          ! grep -q 'href="/getting-started/"' _site/docs/index.html
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
